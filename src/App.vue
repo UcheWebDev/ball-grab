@@ -17,7 +17,7 @@ const logout = async () => { leave(); await signOut() }
 <template>
   <div class="app">
     <div class="top">
-      <h1 class="fd" style="font-size: 20px">🏀 BALL GRAB BATTLE</h1>
+      <h1 class="fd" style="font-size: 20px">🏀 BALL GRAB</h1>
       <div v-if="user" class="chip">
         <Portrait :id="avatar" team="R" :size="34" /><span>{{ displayName }}</span>
         <button class="link" @click="logout">Sign out</button>
