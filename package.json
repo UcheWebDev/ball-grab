@@ -1,0 +1,9 @@
+{
+  "name": "ball-grab-battle-vue",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": { "dev": "vite", "build": "vite build", "preview": "vite preview" },
+  "dependencies": { "@supabase/supabase-js": "^2.45.4", "vue": "^3.4.38" },
+  "devDependencies": { "@vitejs/plugin-vue": "^5.1.2", "vite": "^5.4.2" }
+}

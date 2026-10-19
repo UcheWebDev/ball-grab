@@ -1,0 +1,72 @@
+:root{--bg:#14121f;--panel:#1f1c30;--line:#352f52;--txt:#f4f1ff;--mut:#9b94c4;--red:#ef4444;--yel:#eab308;--acc:#ff9f1c}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+input{user-select:text}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--txt);font-family:Nunito,sans-serif;font-weight:700}
+h1,h2,.fd{font-family:Fredoka,sans-serif;font-weight:700;margin:0}
+.app{max-width:520px;margin:0 auto;padding:12px;min-height:100vh}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px}
+.btn{width:100%;min-height:46px;border:0;border-radius:12px;font:700 15px Fredoka,sans-serif;color:#1a1200;background:var(--acc);cursor:pointer;margin-top:8px}
+.btn.alt{background:#2c2745;color:var(--txt);border:2px solid var(--line)}
+.btn:disabled{opacity:.45}
+input.in{width:100%;padding:12px;border-radius:10px;border:2px solid var(--line);background:#120f1f;color:var(--txt);font:700 16px Nunito;margin-top:8px}
+input.code{text-transform:uppercase;letter-spacing:3px;text-align:center}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.chip{display:flex;align-items:center;gap:8px;font-size:13px}.chip .av{font-size:26px}
+.link{color:var(--mut);font-size:12px;text-decoration:underline;cursor:pointer;background:none;border:0}
+.avs{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:8px}
+.avs button{font-size:26px;padding:6px 0;border-radius:12px;border:2px solid var(--line);background:#120f1f;cursor:pointer}
+.avs button.on{border-color:var(--acc);background:#3a2d12}
+.sub{color:var(--mut);font-size:12px;margin:4px 0 0}
+.msg{color:var(--acc);font-size:13px;min-height:18px;margin-top:8px}
+.score{display:flex;gap:8px;margin-bottom:10px}
+.pl{flex:1;padding:8px;border-radius:14px;border:2px solid var(--line);background:var(--panel);opacity:.55;transition:.2s}
+.pl.turn{opacity:1}.pl.R.turn{border-color:var(--red)}.pl.Y.turn{border-color:var(--yel)}
+.pl .av{font-size:30px}.pl small{display:block;color:var(--mut);font-size:11px}
+.arena{display:grid;grid-template-columns:48px 1fr 48px;gap:8px;align-items:end}
+.tube{height:230px;border:2px solid #ffffff55;border-top:0;border-radius:0 0 14px 14px;background:#ffffff14;display:flex;flex-direction:column-reverse;align-items:center;padding:4px 0;gap:3px}
+.tube.R{border-bottom-color:var(--red)}.tube.Y{border-bottom-color:var(--yel)}
+.ball{width:30px;height:30px;border-radius:50%;flex:none;box-shadow:inset -4px -5px 8px #0006}
+.ball.R{background:radial-gradient(circle at 35% 30%,#fca5a5,#ef4444 55%,#7f1d1d)}
+.ball.Y{background:radial-gradient(circle at 35% 30%,#fef08a,#eab308 55%,#713f12)}
+.box{background:#0f172a;border:3px solid #38bdf8;border-radius:12px;padding:8px}
+.box h2{font-size:12px;color:#fef08a;text-align:center;margin-bottom:6px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.slot{aspect-ratio:1;border-radius:10px;background:#1e293b;border:2px solid #334155;display:flex;align-items:center;justify-content:center;color:#38bdf8;font:700 20px Fredoka;cursor:pointer}
+.slot.empty{border-style:dashed;background:#0f172a;cursor:default}
+.slot.rev.R{border-color:var(--red)}.slot.rev.Y{border-color:var(--yel)}
+.slot .ball{width:70%;height:70%}
+.slot.fa{animation:pop .5s}.slot.fb{animation:pop2 .5s}
+@keyframes pop{50%{transform:scale(1.2)}}@keyframes pop2{50%{transform:scale(1.2)}}
+.status{text-align:center;font-size:14px;color:var(--acc);margin:10px 0;min-height:20px}
+.shake{border-color:var(--acc);display:flex;gap:8px}.shake .btn{margin:0}
+.voice{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.voice .btn{width:auto;padding:0 14px;margin:0;min-height:40px}
+.toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:#000d;border:1px solid var(--acc);padding:9px 16px;border-radius:10px;font-size:13px;z-index:9;max-width:90vw}
+.modal{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;z-index:8;padding:20px}
+.modal .card{text-align:center;max-width:300px;width:100%}.big{font-size:60px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+
+/* ---- stage ---- */
+.brick-wall{background-color:#1e1b2e;background-image:linear-gradient(335deg,rgba(0,0,0,.5) 0,transparent 2px),linear-gradient(155deg,rgba(255,255,255,.05) 0,transparent 2px);background-size:40px 40px}
+.stage{position:relative;border-radius:16px;border:2px solid var(--line);overflow:hidden;padding:4px}
+.scene{display:block;width:100%;max-height:64vh;touch-action:manipulation}
+.pulse{animation:sp 1s infinite}@keyframes sp{50%{stroke-opacity:.3}}
+.hud{display:flex;gap:6px;align-items:center;margin-bottom:8px}
+.banner{flex:1;min-height:34px;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px 12px;border-radius:999px;background:#2c2745;border:1px solid var(--line);color:var(--acc);font-size:12px;line-height:1.2}
+.icon{height:34px;min-width:34px;border-radius:10px;border:1px solid var(--line);background:#2c2745;color:var(--txt);cursor:pointer;font:700 12px Fredoka}
+.icon.wide{padding:0 12px;background:linear-gradient(90deg,#4f46e5,#9333ea)}
+.prompt{position:absolute;top:8px;left:8px;right:8px;z-index:3;background:#0f172af2;border:2px solid #fbbf2499;border-radius:16px;padding:10px;text-align:center}
+.prompt p{margin:0 0 8px;font-size:12px;color:var(--acc)}
+.prompt .row{display:flex;gap:8px}.prompt .btn{margin:0;min-height:40px;font-size:13px}
+/* ---- character picker (append to the end of src/style.css) ---- */
+.chars{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.chars button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px 4px;border-radius:12px;border:2px solid var(--line);background:#120f1f;color:var(--txt);cursor:pointer;font:700 11px Nunito}
+.chars button.on{border-color:var(--acc);background:#3a2d12}
+.prev{display:block;width:100%;height:104px}
+/* ---- outfit colours + larger preview (append to the end of src/style.css) ---- */
+.hero-prev{display:flex;align-items:center;gap:14px;margin:10px 0}
+.hero-prev .prev{width:92px;height:200px;flex:none}
+.lbl{font:700 12px Fredoka,sans-serif;color:var(--mut);margin:10px 0 6px}
+.sw-row{display:flex;flex-wrap:wrap;gap:8px}
+.sw{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+.sw.on{outline:3px solid var(--acc);outline-offset:2px}
+.sw.auto{font:700 8px Nunito,sans-serif;color:#fff;background:repeating-linear-gradient(45deg,#ef4444 0 6px,#eab308 6px 12px)}
