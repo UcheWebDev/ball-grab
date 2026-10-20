@@ -13,6 +13,8 @@ export const roomCode = ref('')
 export const lobbyMsg = ref('')
 
 let S = null                               // authoritative state: lives on the host (or locally vs CPU)
+let wins = { R: 0, Y: 0 }, scored = false, oppUid = null   // session tally: lives on the host, cleared on leave
+const fresh = () => { S = newGame(); scored = false }
 let ch = null, qch = null, cpuTimer = null, oppSeen = false
 
 const uid = () => user.value.id
@@ -24,7 +26,8 @@ export const voice = createVoice({ send, uid, getMe: () => me.value, getOppName:
 export const playerInfo = t => (t === me.value ? { name: displayName.value, avatar: avatar.value, shirt: shirt.value, pants: pants.value } : opp.value)
 
 function sync() {
-  G.value = publicState(S)
+  if (S.winner && !scored) { wins[S.winner]++; scored = true }
+  G.value = { ...publicState(S), wins: { ...wins } }
   if (mode.value === 'online') send('state', G.value)
   else cpuMaybe()
 }
@@ -33,7 +36,7 @@ function run(team, a, i) { if (applyAction(S, team, a, i)) sync() }
 // ---- player actions ----
 export function act(a, i) { isAuthority() ? run(me.value, a, i) : send('act', { a, i }) }
 export function tap(i) { if (myTurn.value && D.value.phase === 'pick' && D.value.slots[i]) act('pull', i) }
-export function rematch() { if (isAuthority()) { S = newGame(); sync() } else send('act', { a: 'rematch' }) }
+export function rematch() { if (isAuthority()) { fresh(); sync() } else send('act', { a: 'rematch' }) }
 
 // ---- vs CPU ----
 function cpuMaybe() {
@@ -46,24 +49,25 @@ function cpuMaybe() {
 }
 export function startCpu() {
   leave(); mode.value = 'cpu'; me.value = 'R'; opp.value = { name: 'CPU', avatar: 'cpu' }
-  S = newGame(); sync()
+  fresh(); sync()
 }
 
 // ---- realtime rooms: Supabase broadcast + presence (no tables needed) ----
 function openRoom(id, role) {
-  closeRoom(); mode.value = 'online'; me.value = role === 'host' ? 'R' : 'Y'; oppSeen = false
+  closeRoom(); mode.value = 'online'; me.value = role === 'host' ? 'R' : 'Y'; oppSeen = false; oppUid = null
   ch = sb.channel('bgb-room-' + id, { config: { broadcast: { self: false }, presence: { key: uid() } } })
   ch.on('broadcast', { event: 'state' }, ({ payload }) => { if (role === 'guest') G.value = payload })
     .on('broadcast', { event: 'act' }, ({ payload }) => {
       if (role !== 'host' || !S) return
-      if (payload.a === 'rematch') { S = newGame(); sync() } else run('Y', payload.a, payload.i)
+      if (payload.a === 'rematch') { fresh(); sync() } else run('Y', payload.a, payload.i)
     })
     .on('broadcast', { event: 'sig' }, ({ payload }) => voice.onSignal(payload))
     .on('presence', { event: 'sync' }, () => {
       const o = Object.values(ch.presenceState()).flat().find(m => m.uid !== uid())
       if (o) {
-        oppSeen = true; opp.value = { name: o.name, avatar: o.avatar, shirt: o.shirt, pants: o.pants }
-        if (role === 'host') { if (!S) S = newGame(); sync() }   // also re-sends state when someone reconnects
+        if (oppUid && oppUid !== o.uid) wins = { R: 0, Y: 0 }   // a different player joined: new tally
+        oppUid = o.uid; oppSeen = true; opp.value = { name: o.name, avatar: o.avatar, shirt: o.shirt, pants: o.pants }
+        if (role === 'host') { if (!S) fresh(); sync() }   // also re-sends state when someone reconnects
       } else if (oppSeen && G.value) { notify('Opponent left the match'); oppSeen = false }
     })
     .subscribe(async st => { if (st === 'SUBSCRIBED') await ch.track({ uid: uid(), name: displayName.value, avatar: avatar.value, shirt: shirt.value, pants: pants.value, role }) })
@@ -111,5 +115,6 @@ export function joinRoom(raw) {
 
 export function leave() {
   voice.stop(); closeRoom(); cancelSearch(); clearTimeout(cpuTimer)
-  S = null; G.value = null; roomCode.value = ''; lobbyMsg.value = ''
+  S = null; wins = { R: 0, Y: 0 }; scored = false; oppUid = null
+  G.value = null; roomCode.value = ''; lobbyMsg.value = ''
 }
