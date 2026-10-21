@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { notify } from '../composables/useToast'
-import { searching, roomCode, lobbyMsg, quickMatch, cancelSearch, createRoom, joinRoom, startCpu, leave } from '../composables/useGame'
+import { searching, roomCode, lobbyMsg, resumable, quickMatch, cancelSearch, createRoom, joinRoom, startCpu, cancelRoom, resumeMatch, discardSession } from '../composables/useGame'
 
 const code = ref('')
 const copied = ref(false)
@@ -29,6 +29,13 @@ const submitJoin = () => {
 </script>
 
 <template>
+  <div v-if="resumable" class="card resume">
+    <h2 style="font-size: 16px">Match in progress</h2>
+    <p class="sub">You vs {{ resumable.oppName }} · {{ resumable.mine }} – {{ resumable.theirs }} balls. You can rejoin for about {{ resumable.minsLeft }} more min.</p>
+    <button class="btn" @click="resumeMatch">↩️ Rejoin match</button>
+    <button class="btn alt" @click="discardSession">Forfeit match</button>
+  </div>
+
   <div class="card">
     <h2 style="font-size: 16px">Play</h2>
     <button class="btn" :disabled="searching" @click="quickMatch">🌐 Quick match</button>
@@ -71,7 +78,7 @@ const submitJoin = () => {
           </svg>
         </button>
       </div>
-      <button class="btn alt" @click="leave">Cancel room</button>
+      <button class="btn alt" @click="cancelRoom">Cancel room</button>
     </div>
   </div>
 

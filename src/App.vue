@@ -1,7 +1,7 @@
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import { user, ready, avatar, displayName, needsSetup, initAuth, signOut } from './composables/useAuth'
-import { G, leave } from './composables/useGame'
+import { G, leaveMatch, tryAutoResume } from './composables/useGame'
 import { toast } from './composables/useToast'
 import './composables/useStage'
 import AuthView from './components/AuthView.vue'
@@ -11,7 +11,16 @@ import SetupView from './components/SetupView.vue'
 import Portrait from './components/Portrait.vue'
 
 onMounted(initAuth)
-const logout = async () => { leave(); await signOut() }
+const logout = async () => { await leaveMatch(); await signOut() }
+
+// after sign-in: jump straight back into a match that was interrupted by a refresh / crash,
+// or offer to rejoin one the player left
+let resumeChecked = false
+watch([ready, user, needsSetup], () => {
+  if (!user.value) { resumeChecked = false; return }
+  if (resumeChecked || !ready.value || needsSetup.value) return
+  resumeChecked = true; tryAutoResume()
+}, { immediate: true })
 </script>
 
 <template>
