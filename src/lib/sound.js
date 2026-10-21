@@ -23,6 +23,8 @@ export function playSound(type) {
     else if (type === 'fail') tone('sawtooth', 220, 110, 0, 0.25, 0.15)
     else if (type === 'shuffle') for (let i = 0; i < 6; i++) tone('sawtooth', 80 + Math.random() * 60, 0, i * 0.06, 0.08, 0.12)
     else if (type === 'match') [523.25, 659.25, 783.99].forEach((f, i) => tone('sine', f, 0, i * 0.08, 0.2, 0.18))
+    else if (type === 'shout') tone('sawtooth', 420, 150, 0, 0.45, 0.13)
+    else if (type === 'laugh') for (let i = 0; i < 4; i++) tone('triangle', 560 - i * 45, 330 - i * 30, 0.5 + i * 0.15, 0.1, 0.17)
     else if (type === 'win') [400, 520, 650, 800, 1040].forEach((f, i) => tone('triangle', f, 0, i * 0.1, 0.25, 0.2))
   } catch {}
 }

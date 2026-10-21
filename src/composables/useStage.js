@@ -10,7 +10,8 @@ export const heldSlot = ref(-1)     // slot the held ball came from (drawn empty
 export const falling = ref(null)    // {x,y,c}: ball dropping into a tube
 export const boxOff = ref({ x: 0, y: 0 })
 export const statusMsg = ref('')
-export const emotes = ref({ R: null, Y: null })   // 'dance' | 'cry' | 'head' | null per team
+export const talking = ref({ R: 0, Y: 0 })   // voice level 0..3 per team: drives the talking animation
+export const emotes = ref({ R: null, Y: null })   // 'dance' | 'cry' | 'head' | 'laugh' | null per team
 
 let gen = 0, q = [], running = false, lastSeq = -1, prevEv = null
 const sleep = ms => new Promise(r => setTimeout(r, ms))
@@ -50,7 +51,11 @@ async function playMove(next, g) {
     statusMsg.value = next.msg
     if (ok) {
       // the player who just shook the box to hide the ball sees the opponent grab their colour anyway
-      if (prevEv && prevEv.t === 'shake' && prevEv.team !== team) flashEmote(prevEv.team, 'head', 2600, g)
+      if (prevEv && prevEv.t === 'shake' && prevEv.team !== team) {
+        flashEmote(prevEv.team, 'head', 2600, g)      // the shaker shouts: "how did you find it?!"
+        flashEmote(team, 'laugh', 2600, g)             // ...and the one who found it anyway laughs
+        setTimeout(() => { if (g === gen) { playSound('shout'); playSound('laugh') } }, 350)
+      }
       playSound('match'); haptic([40, 50, 40])
       await moveHand(team, { x: tube.x + tube.w / 2, y: active.value.y }, 500, g, true); if (g !== gen) return
       held.value = null
@@ -73,6 +78,10 @@ async function playMove(next, g) {
       await moveHand(team, rest, 350, g, false)
     } else {
       playSound('fail'); haptic([80])
+      if (prevEv && prevEv.t === 'shake' && prevEv.team !== team) {       // the shake worked: the shaker laughs at the wrong guess
+        flashEmote(prevEv.team, 'laugh', 2600, g)
+        setTimeout(() => { if (g === gen) playSound('laugh') }, 150)
+      }
       await sleep(400); if (g !== gen) return
       await moveHand(team, { x: sl.cx, y: sl.cy }, 500, g, true); if (g !== gen) return     // put it back, face up
       held.value = null; heldSlot.value = -1; setD(next); playSound('drop')
@@ -113,7 +122,7 @@ watch(G, g => {
 
 
 // Winner dances, loser cries (once the last animation has finished)
-watch([() => D.value?.winner, busy], ([w, b]) => {
+watch([() => D.value?.winner, busy], ([w, b], old) => {
   if (w && !b) emotes.value = { R: w === 'R' ? 'dance' : 'cry', Y: w === 'Y' ? 'dance' : 'cry' }
-  else if (!w) emotes.value = { R: null, Y: null }
+  else if (!w && old?.[0]) emotes.value = { R: null, Y: null }   // new game: clear (flash emotes time themselves out)
 })

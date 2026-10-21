@@ -5,7 +5,8 @@ import Hand from './Hand.vue'
 
 const p = defineProps({
   team: String, look: Object, av: Object, resting: Boolean,
-  emote: String,                       // 'dance' | 'cry' | 'head' | undefined
+  emote: String,                       // 'dance' | 'cry' | 'head' | 'laugh' | undefined
+  talk: { type: Number, default: 0 },  // voice level 0..3 (mouth opens with it)
   shadowY: { type: Number, default: GROUND + 2 },
 })
 const x = computed(() => p.av.x), y = computed(() => p.av.y)
@@ -35,22 +36,28 @@ const skirt = computed(() => `M ${x.value - 15} ${y.value + 78} H ${x.value + 15
 const feet = computed(() => y.value + 126)
 const mouthColor = computed(() => (p.look.beard === 'full' ? '#fca5a5' : fem.value ? '#be123c' : '#7c2d12'))
 const smile = computed(() => `M ${x.value - 7} ${y.value + 22} Q ${x.value} ${y.value + 33} ${x.value + 7} ${y.value + 22} Z`)
+const laughMouth = computed(() => `M ${x.value - 8} ${y.value + 22} Q ${x.value} ${y.value + 38} ${x.value + 8} ${y.value + 22} Z`)
 const frown = computed(() => `M ${x.value - 5} ${y.value + 28} Q ${x.value} ${y.value + 22} ${x.value + 5} ${y.value + 28}`)
 // emote arms: [shoulder, elbow, hand] offsets, mirrored for the left / right side
 const EARMS = {
   dance: { sh: [18, 42], el: [30, 22], hd: [26, -6] },
   cry: { sh: [18, 44], el: [24, 30], hd: [8, 15] },
   head: { sh: [18, 44], el: [32, 22], hd: [12, 1] },
+  laugh: { sh: [18, 44], el: [27, 58], hd: [11, 67] },   // hands on the belly
 }
+// the working arm is drawn by ActiveArm while it reaches, so the emote must not draw a second copy of it
+const workK = computed(() => Math.sign(p.av.sh.x - x.value) || -dir.value)
 const earms = computed(() => {
   const a = EARMS[p.emote]
   if (!a) return []
-  return [-1, 1].map(k => ({
+  return [-1, 1].filter(k => p.resting || k !== workK.value).map(k => ({
     k, sx: x.value + k * a.sh[0], sy: y.value + a.sh[1],
     ex: x.value + k * a.el[0], ey: y.value + a.el[1],
     hx: x.value + k * a.hd[0], hy: y.value + a.hd[1],
   }))
 })
+const talkRx = computed(() => [0, 3, 3.6, 4.2][p.talk] || 0)
+const talkRy = computed(() => [0, 2, 3.6, 5.2][p.talk] || 0)
 const dreadX = [-18, -12, -6, 6, 12, 18]
 const curls = [[-14, 2], [-8, -4], [0, -7], [8, -4], [14, 2]]
 </script>
@@ -62,11 +69,14 @@ const curls = [[-14, 2], [-8, -4], [0, -7], [8, -4], [14, 2]]
     <!-- emote wrappers: bounce (dance) > sway (dance) > shake (cry / head) -->
     <g>
       <animateTransform v-if="emote === 'dance'" attributeName="transform" type="translate" values="0 0;0 -12;0 0" dur="0.5s" repeatCount="indefinite" />
+      <animateTransform v-else-if="emote === 'laugh' && resting" attributeName="transform" type="translate" values="0 0;0 -4;0 0" dur="0.2s" repeatCount="indefinite" />
       <g>
-        <animateTransform v-if="emote === 'dance'" attributeName="transform" type="rotate" :values="`-5 ${x} ${feet};5 ${x} ${feet};-5 ${x} ${feet}`" dur="1s" repeatCount="indefinite" />
+        <animateTransform v-if="emote === 'laugh' && resting" attributeName="transform" type="rotate" :values="`-3 ${x} ${feet};3 ${x} ${feet};-3 ${x} ${feet}`" dur="0.4s" repeatCount="indefinite" />
+        <animateTransform v-else-if="emote === 'dance'" attributeName="transform" type="rotate" :values="`-5 ${x} ${feet};5 ${x} ${feet};-5 ${x} ${feet}`" dur="1s" repeatCount="indefinite" />
         <g>
           <animateTransform v-if="emote === 'cry'" attributeName="transform" type="translate" values="0 0;0 2.5;0 0" dur="0.3s" repeatCount="indefinite" />
           <animateTransform v-else-if="emote === 'head'" attributeName="transform" type="translate" values="0 0;-2 0;2 0;0 0" dur="0.25s" repeatCount="indefinite" />
+          <animateTransform v-else-if="!emote && talk" attributeName="transform" type="translate" values="0 0;0 -1.4;0 0" dur="0.32s" repeatCount="indefinite" />
 
     <!-- legs, shoes (women: skirt) -->
     <template v-if="fem">
@@ -121,7 +131,11 @@ const curls = [[-14, 2], [-8, -4], [0, -7], [8, -4], [14, 2]]
     </g>
 
     <!-- face -->
-    <template v-if="!look.glasses">
+    <g v-if="emote === 'laugh' && !look.glasses" fill="none" stroke="#1e293b" stroke-width="1.8">
+      <path :d="`M ${x - 9} ${y + 14} Q ${x - 5} ${y + 9} ${x - 1} ${y + 14}`" />
+      <path :d="`M ${x + 1} ${y + 14} Q ${x + 5} ${y + 9} ${x + 9} ${y + 14}`" />
+    </g>
+    <template v-else-if="!look.glasses">
       <circle :cx="x - 5" :cy="y + 13" r="1.8" fill="#1e293b" />
       <circle :cx="x + 5" :cy="y + 13" r="1.8" fill="#1e293b" />
     </template>
@@ -133,8 +147,13 @@ const curls = [[-14, 2], [-8, -4], [0, -7], [8, -4], [14, 2]]
     <path v-if="look.beard === 'full'" :d="beardFull" :fill="beardColor" />
     <path v-if="look.beard === 'stache'" :d="stache" :fill="beardColor" />
     <path v-if="emote === 'dance'" :d="smile" fill="#fff" :stroke="mouthColor" stroke-width="1.6" stroke-linejoin="round" />
+    <template v-else-if="emote === 'laugh'">
+      <path :d="laughMouth" fill="#450a0a" :stroke="mouthColor" stroke-width="1.4" stroke-linejoin="round" />
+      <line :x1="x - 6" :y1="y + 23.6" :x2="x + 6" :y2="y + 23.6" stroke="#fff" stroke-width="2.6" />
+    </template>
     <path v-else-if="emote === 'cry'" :d="frown" fill="none" :stroke="mouthColor" stroke-width="2" />
     <ellipse v-else-if="emote === 'head'" :cx="x" :cy="y + 26" rx="3.5" ry="5" fill="#450a0a" :stroke="mouthColor" stroke-width="1" />
+    <ellipse v-else-if="talk" :cx="x" :cy="y + 25 + talkRy * 0.4" :rx="talkRx" :ry="talkRy" fill="#450a0a" :stroke="mouthColor" stroke-width="1" />
     <path v-else-if="look.beard !== 'full'" :d="mouth" fill="none" :stroke="fem ? '#be123c' : '#7c2d12'" :stroke-width="fem ? 2 : 1.6" />
 
     <!-- passive arm -->
@@ -158,6 +177,14 @@ const curls = [[-14, 2], [-8, -4], [0, -7], [8, -4], [14, 2]]
       <line :x1="a.sx" :y1="a.sy" :x2="a.ex" :y2="a.ey" :stroke="shirt" stroke-width="9" />
       <line :x1="a.ex" :y1="a.ey" :x2="a.hx" :y2="a.hy" :stroke="look.skin" stroke-width="7" />
       <circle :cx="a.hx" :cy="a.hy" r="6" :fill="look.skin" />
+    </g>
+
+    <!-- tears of joy -->
+    <g v-if="emote === 'laugh'" fill="#7dd3fc">
+      <circle v-for="k in [-1, 1]" :key="k" :cx="x + k * 11" :cy="y + 15" r="2">
+        <animate attributeName="cx" :values="`${x + k * 11};${x + k * 17}`" dur="0.5s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="1;0" dur="0.5s" repeatCount="indefinite" />
+      </circle>
     </g>
 
     <!-- tears -->

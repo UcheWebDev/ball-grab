@@ -81,3 +81,7 @@ input.code{text-transform:uppercase;letter-spacing:3px;text-align:center}
 .netbar{position:absolute;top:8px;left:8px;right:8px;z-index:6;text-align:center;font-size:12px;line-height:1.25;padding:6px 10px;border-radius:10px;background:#000c;border:1px solid var(--line);pointer-events:none;animation:fadein .3s}
 .netbar.warn{border-color:#eab308;color:#fde68a}.netbar.bad{border-color:#ef4444;color:#fecaca}
 .card.resume{border-color:var(--acc)}
+.pl .eq{position:absolute;top:6px;right:32px;display:flex;align-items:flex-end;gap:2px;height:11px}
+.eq i{width:3px;height:3px;border-radius:1px;background:var(--acc);animation:eqb .5s ease-in-out infinite}
+.eq i:nth-child(2){animation-delay:.15s}.eq i:nth-child(3){animation-delay:.3s}
+@keyframes eqb{50%{height:11px}}

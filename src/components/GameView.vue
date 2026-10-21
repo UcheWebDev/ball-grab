@@ -2,7 +2,7 @@
 import { computed, watch, ref, onBeforeUnmount } from 'vue'
 import { notify } from '../composables/useToast'
 import { D, mode, me, opp, net, myTurn, busy, playerInfo, tap, act, rematch, leaveMatch, voice } from '../composables/useGame'
-import { statusMsg } from '../composables/useStage'
+import { statusMsg, talking } from '../composables/useStage'
 import { lookFor } from '../lib/avatars'
 import { playSound, haptic, soundOn, toggleSound } from '../lib/sound'
 import Scene from './Scene.vue'
@@ -36,7 +36,13 @@ watch(() => !!D.value?.winner && !busy.value, ready => {
   if (ready) resultTimer = setTimeout(() => (showResult.value = true), RESULT_DELAY)
   else showResult.value = false
 }, { immediate: true })
-onBeforeUnmount(() => clearTimeout(resultTimer))
+onBeforeUnmount(() => { clearTimeout(resultTimer); talking.value = { R: 0, Y: 0 } })
+
+// voice level -> which character is talking
+watch(() => [V.on, V.lvlMe, V.lvlOpp, me.value], () => {
+  const mine = me.value, theirs = mine === 'R' ? 'Y' : 'R'
+  talking.value = V.on ? { [mine]: V.lvlMe, [theirs]: V.lvlOpp } : { R: 0, Y: 0 }
+}, { immediate: true })
 
 // ---- connection status ----
 const sigOf = t => {
@@ -78,6 +84,7 @@ const doLeave = () => { showLeave.value = false; leaveMatch() }
 
   <div class="score">
     <div v-for="t in ['R', 'Y']" :key="t" class="pl" :class="[t, { turn: D.turn === t }]">
+      <span v-if="talking[t]" class="eq" title="Talking"><i /><i /><i /></span>
       <SignalBars v-if="mode === 'online'" class="sigpos" :q="sigOf(t).q" :rtt="sigOf(t).rtt" />
       <Portrait :id="playerInfo(t).avatar" :team="t" :size="46" />
       <div class="who">

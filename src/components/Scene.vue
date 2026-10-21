@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { W, H, GROUND, BOX, TUBES, AV, BALL_R, slotGeom } from '../lib/geometry'
 import { D } from '../composables/store'
-import { active, held, heldSlot, falling, boxOff, emotes } from '../composables/useStage'
+import { active, held, heldSlot, falling, boxOff, emotes, talking } from '../composables/useStage'
 import Avatar from './Avatar.vue'
 import ActiveArm from './ActiveArm.vue'
 import Ball from './Ball.vue'
@@ -26,7 +26,7 @@ const tubePath = t => `M ${t.x} ${t.y} V ${t.y + t.h - 12} Q ${t.x} ${t.y + t.h}
     </defs>
     <ellipse :cx="W / 2" :cy="GROUND + 8" :rx="W * 0.45" ry="12" fill="rgba(0,0,0,.35)" />
 
-    <Avatar v-for="t in ['R', 'Y']" :key="t" :team="t" :look="looks[t]" :av="AV[t]" :resting="!active || active.team !== t" :emote="emotes[t]" />
+    <Avatar v-for="t in ['R', 'Y']" :key="t" :team="t" :look="looks[t]" :av="AV[t]" :resting="!active || active.team !== t" :emote="emotes[t]" :talk="talking[t]" />
 
     <!-- tubes -->
     <g v-for="t in ['R', 'Y']" :key="'t' + t">
